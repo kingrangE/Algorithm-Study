@@ -277,5 +277,102 @@
     ```
 
 ### 다익스트라
-- 그래프의 한 정점 -> 다른 정점까지 가는데 필요한 **최소 비용**을 산출하는 알고리즘
+- 가중치가 있는 그래프의 한 정점 -> 다른 정점까지 가는데 필요한 **최소 비용**을 산출하는 알고리즘
     - 우선순위 탐색 알고리즘과 유사
+- 특징
+    1. 단일 출발점 최단 경로 : 주어진 출발점에서 다른 모든 노드까지의 최단 경로를 구함
+    2. 비음수 가중치 : 간선의 가중치가 음수가 아닌 경우에만 적용 가능
+    3. Greedy Approach : 매 단계에서 가장 최단 거리를 갖는 노드를 선택하여 경로 확장
+- 동작 원리
+    1. 초기화 : 출발 노드의 거리 0 설정, 다른 노드와의 거리 inf설정
+    2. 방문하지 않은 노드 중 최단 거리를 가진 노드 선택 : 현재 노드에서 인접한 모든 노드의 거리 update
+    3. 거리를 업데이트 : 현재 노드와 인접한 노드간의 거리를 계산하여 더 짧은 경로가 발견되면 거리 update
+    4. 반복 : 모든 노드를 방문할 때까지 2,3번 단계 반복
+- 활용
+    1. 최단 경로 문제
+    2. Network Routing
+    3. 교통 최적화
+- 구현
+    ``` python
+    import heapq
+
+    def dijkstra(graph, start):
+        distances = {node: float('inf') for node in graph}
+        distances[start] = 0
+        priority_queue = [(0, start)]
+
+        while priority_queue:
+            current_distance, current_node = heapq.heappop(priority_queue)
+
+            if current_distance > distances[current_node]:
+                continue
+
+            for neighbor, weight in graph[current_node].items():
+                distance = current_distance + weight
+
+                if distance < distances[neighbor]:
+                    distances[neighbor] = distance
+                    heapq.heappush(priority_queue, (distance, neighbor))
+
+        return distances
+
+    graph = {
+        'A': {'B': 1, 'C': 2},
+        'B': {'A': 1, 'E': 2, 'D': 6},
+        'C': {'A': 2, 'E': 3, 'F': 8},
+        'D': {'B': 6, 'E': 1},
+        'E': {'B': 2, 'C': 3, 'D': 1, 'F': 7},
+        'F': {'C': 8, 'E': 7}
+    }
+
+    print(dijkstra(graph, 'A'))
+    ```
+
+### 위상 정렬
+- 비순환 방향 그래프에만 적용할 수 있다. (ex, 대학교 선수 과목)
+
+- 동작 방식
+    1. 진입 차수가 0인 노드들을 queue에 넣음 (진입 차수 : 간선의 수)
+    2. queue에서 node를 하나씩 빼며 연결되어 있는 node의 진입 차수를 감소시킴
+    3. 1-2 반복
+
+- 구현
+    ```python
+    def topology_sort(indegree, graph):
+        result = []
+        queue = deque()
+        for i in range(1,n+1):
+            if indegree[i] == 0 : #진입차수 0이면
+                queue.append(i)
+        while queue :
+            current = queue.popleft()
+            result.append(current)
+            for i in graph[current]:
+                indegree[i] -=1
+                if indegree[i] == 0 :
+                    queue.append(i)
+        for i in result :
+            print(i, end=" ")
+
+    topology_sort()
+    ```
+## 4.3 문자열 검색
+- 주어진 문자 배열에서 원하는 패턴의 배열을 찾는 것
+    - 가장 흔한 방법 : 문자열의 길이가 M이고, 찾고자 하는 substring 길이가 N일 때, O(MN)의 시간복잡도로 찾는 것
+        - BUT, KMP알고리즘과 rabin-karp 알고리즘으로 이를 O(N)의 시간복잡도로 수행할 수 있게 할 수 있다.
+### 가장 흔한 방법
+```python
+def common_search(full_text,sub_text):
+    for i in range(len(full_text)):
+        flag = True
+        for j in range(len(sub_text)):
+            if full_text[i+j] != sub_text[j] :
+                flag = False
+        if flag : 
+            print(full_text[i:i+len(sub_text)])
+```
+### rabin-karp 알고리즘
+- Full text에서 sub text를 O(N)의 시간 복잡도로 찾아내는 알고리즘
+- Idea  
+    - 찾고자 하는 문자열 길이에 해당하는 문자를 sliding window에 넣고, 각 문자를 특정 hash 값으로 변경
+    - 이 값의 총합으로 윈도우에서 해당하는 문자를 식별하는 방식
